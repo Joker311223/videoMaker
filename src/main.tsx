@@ -141,7 +141,7 @@ function App() {
       <aside>
         <div className="brand">
           <div className="brand-mark">
-            <Sparkles size={23} />
+            <img src="./brand.svg" alt="角色工坊" />
           </div>
           <span>
             角色工坊<small>CHARACTER STUDIO</small>

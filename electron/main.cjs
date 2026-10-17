@@ -150,6 +150,8 @@ function handle(name, fn) {
   });
 }
 app.whenReady().then(async () => {
+  const appIcon = nativeImage.createFromPath(path.join(__dirname, "assets/icon.png"));
+  if (process.platform === "darwin") app.dock?.setIcon(appIcon);
   try {
     settings = JSON.parse(await fs.readFile(configFile(), "utf8"));
   } catch {}
@@ -298,6 +300,7 @@ app.whenReady().then(async () => {
     minWidth: 1000,
     minHeight: 700,
     title: "角色工坊",
+    icon: appIcon,
     backgroundColor: "#f6f5f0",
     webPreferences: {
       preload: path.join(__dirname, "preload.cjs"),
