@@ -52,7 +52,7 @@ function App() {
   const [genderFilter, setGenderFilter] = useState("all");
   const [minAge, setMinAge] = useState("");
   const [maxAge, setMaxAge] = useState("");
-  const [sortOrder, setSortOrder] = useState("latest");
+  const [sortOrder, setSortOrder] = useState("gender");
   const [profile, setProfile] = useState("");
   const [artStyle, setArtStyle] = useState("3d");
   const [modelKey, setModelKey] = useState("codex");
@@ -127,7 +127,7 @@ function App() {
       }
     });
   const visibleItems = selectCharacters(items, {query, gender: genderFilter, minAge, maxAge, sort: sortOrder});
-  const activeFilterCount = Number(genderFilter !== "all") + Number(minAge !== "" || maxAge !== "") + Number(sortOrder !== "latest");
+  const activeFilterCount = Number(genderFilter !== "all") + Number(minAge !== "" || maxAge !== "") + Number(sortOrder !== "gender");
   const active = items.filter((x) => x.status === "generating").length;
   const status = (s: string) =>
     ({
@@ -230,8 +230,8 @@ function App() {
             <div className="library-filters">
             <label>性别<select value={genderFilter} onChange={e => setGenderFilter(e.target.value)}><option value="all">全部性别</option><option value="女">女</option><option value="男">男</option><option value="other">其他 / 未注明</option></select></label>
             <label>年龄范围<div className="age-filter"><input type="number" min="0" max="999" value={minAge} placeholder="最低年龄" aria-label="最低年龄" onChange={e => setMinAge(e.target.value)} /><span>至</span><input type="number" min="0" max="999" value={maxAge} placeholder="最高年龄" aria-label="最高年龄" onChange={e => setMaxAge(e.target.value)} /><span>岁</span></div></label>
-            <label>排序<select value={sortOrder} onChange={e => setSortOrder(e.target.value)}><option value="latest">最近创建</option><option value="gender">按性别（女 → 男）</option><option value="age-asc">年龄从小到大</option><option value="age-desc">年龄从大到小</option></select></label>
-            <button className="secondary" onClick={() => {setGenderFilter("all"); setMinAge(""); setMaxAge(""); setSortOrder("latest"); setQuery("");}}>重置</button>
+            <label>排序<select value={sortOrder} onChange={e => setSortOrder(e.target.value)}><option value="gender">女性优先（默认）</option><option value="latest">最近创建</option><option value="age-asc">年龄从小到大</option><option value="age-desc">年龄从大到小</option></select></label>
+            <button className="secondary" onClick={() => {setGenderFilter("all"); setMinAge(""); setMaxAge(""); setSortOrder("gender"); setQuery("");}}>重置</button>
             {(minAge !== "" || maxAge !== "") && <span className="filter-help">任一参演年龄符合即可；年龄未注明的角色不参与范围筛选。</span>}
             {minAge !== "" && maxAge !== "" && Number(minAge) > Number(maxAge) && <span className="filter-help" role="alert">最低年龄不能大于最高年龄。</span>}
             </div>
