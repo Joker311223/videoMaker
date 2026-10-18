@@ -64,6 +64,6 @@ export function ImagePreview({ image, onClose }: { image: PreviewImage; onClose:
         setDimensions({width, height}); fit(width, height);
       }} />}
     </div>
-    <div className="image-viewer-hint">双指捏合缩放 · 双指滑动查看细节 · Esc 关闭</div>
+    <div className="image-viewer-hint">双指捏合缩放 · 双指滑动查看细节 · 右键复制图片 · Esc 关闭</div>
   </dialog>;
 }

@@ -1,6 +1,7 @@
 const {
   app,
   BrowserWindow,
+  Menu,
   ipcMain,
   dialog,
   shell,
@@ -335,6 +336,16 @@ app.whenReady().then(async () => {
   win.webContents.on("will-prevent-unload", event => {
     const response = dialog.showMessageBoxSync(win, { type: "warning", buttons: ["继续编辑", "放弃修改并关闭"], defaultId: 0, cancelId: 0, message: "故事有未保存的修改", detail: "关闭窗口将丢失未保存的内容，请先保存故事。" });
     if (response === 1) event.preventDefault();
+  });
+  win.webContents.on("context-menu", (_event, params) => {
+    if (params.mediaType !== "image" || !/^(character|story):/.test(params.srcURL)) return;
+    Menu.buildFromTemplate([{
+      label: "复制图片",
+      enabled: params.hasImageContents,
+      click: () => {
+        if (!win?.isDestroyed()) win.webContents.copyImageAt(params.x, params.y);
+      },
+    }]).popup({ window: win });
   });
   win.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
   win.webContents.on("will-navigate", (event) => event.preventDefault());
