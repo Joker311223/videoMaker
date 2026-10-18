@@ -17,7 +17,9 @@ const { pathToFileURL } = require("node:url");
 const { recordImages } = require("./asset-plan.cjs");
 const { generationOptions } = require("./models.cjs");
 const { Tasks, inside, readSafe } = require("./core.cjs");
+const { Stories } = require("./stories.cjs");
 protocol.registerSchemesAsPrivileged([
+  { scheme: "story", privileges: { standard: true, secure: true, supportFetchAPI: true } },
   {
     scheme: "character",
     privileges: { standard: true, secure: true, supportFetchAPI: true },
@@ -29,6 +31,7 @@ let win,
   settings = {},
   tasks;
 const known = new Map();
+const stories = new Stories(() => settings.root, { imageCheck: buffer => { if (nativeImage.createFromBuffer(buffer).isEmpty()) throw Error("图片无法解码"); } });
 function configFile() {
   return path.join(app.getPath("userData"), "settings.json");
 }
@@ -181,8 +184,28 @@ app.whenReady().then(async () => {
       return new Response("Not found", { status: 404 });
     }
   });
+  protocol.handle("story", async request => {
+    try {
+      const url = new URL(request.url);
+      const file = decodeURIComponent(url.pathname.slice(1));
+      const target = await stories.image(url.hostname, file);
+      return net.fetch(pathToFileURL(target).href);
+    } catch { return new Response("Not found", { status: 404 }); }
+  });
+  handle("story-list", () => stories.list());
+  handle("story-save", input => stories.save(input));
+  handle("story-delete", id => stories.delete(id, async story => {
+    const answer = await dialog.showMessageBox(win, { type: "warning", buttons: ["取消", "移到废纸篓"], defaultId: 0, cancelId: 0, message: `删除故事「${story.title}」？`, detail: "故事、章节、分镜及场景图将一起移到系统废纸篓。角色库中的角色会保留。" });
+    return answer.response === 1;
+  }, dir => shell.trashItem(dir)));
+  handle("story-import-images", async (storyId, chapterId, shotId) => {
+    await stories.read(storyId);
+    const result = await dialog.showOpenDialog(win, { properties: ["openFile", "multiSelections"], filters: [{ name: "场景图片", extensions: ["png", "jpg", "jpeg", "webp"] }] });
+    return stories.importImages(storyId, chapterId, shotId, result.canceled ? [] : result.filePaths);
+  });
   handle("state", async () => ({ settings: publicSettings(), characters: await list() }));
   handle("choose-folder", async () => {
+    if (stories.queues.size) throw Error("请等待故事保存完成后再切换目录");
     if ([...tasks.jobs.values()].some((j) => j.status === "generating"))
       throw Error("请等待或取消当前生成后再切换目录");
     const r = await dialog.showOpenDialog(win, {
@@ -299,7 +322,7 @@ app.whenReady().then(async () => {
     height: 920,
     minWidth: 1000,
     minHeight: 700,
-    title: "角色工坊",
+    title: "创作工坊",
     icon: appIcon,
     backgroundColor: "#f6f5f0",
     webPreferences: {
@@ -308,6 +331,10 @@ app.whenReady().then(async () => {
       nodeIntegration: false,
       sandbox: true,
     },
+  });
+  win.webContents.on("will-prevent-unload", event => {
+    const response = dialog.showMessageBoxSync(win, { type: "warning", buttons: ["继续编辑", "放弃修改并关闭"], defaultId: 0, cancelId: 0, message: "故事有未保存的修改", detail: "关闭窗口将丢失未保存的内容，请先保存故事。" });
+    if (response === 1) event.preventDefault();
   });
   win.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
   win.webContents.on("will-navigate", (event) => event.preventDefault());

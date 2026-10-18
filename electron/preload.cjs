@@ -1,6 +1,10 @@
 const { contextBridge, ipcRenderer } = require("electron");
 const methods = [
   "state",
+  "story-list",
+  "story-save",
+  "story-delete",
+  "story-import-images",
   "save-settings",
   "choose-folder",
   "choose-codex",

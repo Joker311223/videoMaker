@@ -8,6 +8,7 @@ import {
   Search,
   SlidersHorizontal,
   Users,
+  BookOpen,
   Folder,
   Settings,
   Sparkles,
@@ -20,6 +21,7 @@ import {
   Terminal,
   Image as ImageIcon,
 } from "lucide-react";
+import { StoryWorkspace } from "./stories";
 import "./style.css";
 import "./library-ui.css";
 import { characterTags, selectCharacters, type CharacterTags } from "./character-tags";
@@ -48,6 +50,9 @@ declare global {
 }
 const modelChoices = [["codex", "Codex imagegen"], ["flash", "Doubao Seedream 5.0 Flash"], ["pro", "Doubao Seedream 5.0 Pro"]];
 function App() {
+  const [workspace, setWorkspace] = useState<"characters" | "stories">("characters");
+  const [storyCount, setStoryCount] = useState(0);
+  const [storyDirty, setStoryDirty] = useState(false);
   const [preview, setPreview] = useState<PreviewImage | null>(null);
   const [genderFilter, setGenderFilter] = useState("all");
   const [minAge, setMinAge] = useState("");
@@ -141,17 +146,18 @@ function App() {
       <aside>
         <div className="brand">
           <div className="brand-mark">
-            <img src="./brand.svg" alt="角色工坊" />
+            <img src="./brand.svg" alt="创作工坊" />
           </div>
           <span>
-            角色工坊<small>CHARACTER STUDIO</small>
+            创作工坊<small>STORY & CHARACTER</small>
           </span>
         </div>
         <div className="workspace-label">工作空间</div>
-        <button className="nav active">
+        <button className={`nav ${workspace === "characters" ? "active" : ""}`} onClick={() => setWorkspace("characters")}>
           <Users size={18} />
           人物库 <span>{items.length}</span>
         </button>
+        <button className={`nav ${workspace === "stories" ? "active" : ""}`} onClick={() => setWorkspace("stories")}><BookOpen size={18} />故事 <span>{storyCount}</span></button>
         <div className="sidebar-note">
           <span className="tiny-dot" />
           本地创作，自在保存<p>把一个灵感，变成有故事的人物。</p>
@@ -170,14 +176,15 @@ function App() {
       <main>
         <header>
           <div className="breadcrumb">
-            工作空间 <ChevronRight size={13} /> 人物库
+            工作空间 <ChevronRight size={13} /> {workspace === "characters" ? "人物库" : "故事"}
           </div>
-          <button className="folder-link" onClick={() => folder()}>
+          <button className="folder-link" disabled={storyDirty} title={storyDirty ? "请先保存故事，再切换素材目录" : "选择素材保存目录"} onClick={() => folder()}>
             <Folder size={15} />
             {settings.root ? settings.root.split("/").pop() : "选择保存文件夹"}
             <ArrowUpRight size={13} />
           </button>
         </header>
+        <div hidden={workspace !== "characters"}>
         <div className="content">
           <div className="intro">
             <div>
@@ -349,6 +356,10 @@ function App() {
             </span>
             <span>用想象力，为故事选角。</span>
           </footer>
+        </div>
+        </div>
+        <div hidden={workspace !== "stories"}>
+          <StoryWorkspace characters={items} root={settings.root} onChooseFolder={() => { void folder(); }} onCountChange={setStoryCount} onDirtyChange={setStoryDirty} />
         </div>
       </main>
       {modal && (

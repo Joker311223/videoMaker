@@ -31,7 +31,7 @@
   },
   "build": {
     "appId": "com.local.characterstudio",
-    "productName": "角色工坊",
+    "productName": "创作工坊",
     "files": [
       "dist/**/*",
       "electron/**/*"
